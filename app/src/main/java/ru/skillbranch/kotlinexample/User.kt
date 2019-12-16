@@ -31,13 +31,12 @@ class User private constructor(
     private var _login:String? = null
     internal var login:String
         set(value) {
-            _login = value?.toLowerCase()
+            _login = value.toLowerCase()
         }
         get() = _login!!
 
-    private val salt: String by lazy {
-        ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
-    }
+
+    private var salt: String = ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
     lateinit var passwordHash:String
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
@@ -66,6 +65,22 @@ class User private constructor(
         passwordHash = encrypt(code)
         accessCode = code
         sendAccessCodeToUser(rawPhone, code)
+    }
+
+    //for import
+    constructor(
+        firstName: String,
+        lastName: String?,
+        email: String?,
+        hash:String,
+        iSalt:String,
+        phone: String?
+    ): this(firstName, lastName, email= email,rawPhone = phone, meta = mapOf("src" to "csv")){
+        println("Import constructor")
+        passwordHash = hash
+        salt = iSalt
+
+
     }
 
 
@@ -139,6 +154,21 @@ class User private constructor(
                     password
                 )
                 else -> throw IllegalArgumentException("Email or phone must be not null or blank")
+            }
+        }
+
+        fun makeUserImport(
+            fullName: String?,
+            email: String? = null,
+            passwordRaw: String? = null,
+            phone: String? = null
+        ): User? {
+            if (fullName.isNullOrBlank() || passwordRaw.isNullOrBlank()) {
+                return null
+            }else{
+            val (firstName, lastName) = fullName.fullNameToPair()
+            val (imSalt, hash) = passwordRaw.split(":")
+            return User(firstName, lastName, email,hash,imSalt,phone )
             }
         }
 

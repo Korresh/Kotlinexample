@@ -3,6 +3,7 @@ package ru.skillbranch.kotlinexample
 import androidx.annotation.VisibleForTesting
 import java.lang.IllegalArgumentException
 
+
 object UserHolder {
     private val map = mutableMapOf<String, User>()
 
@@ -43,7 +44,7 @@ object UserHolder {
         if (login.contains("@")) {
             newLogin = login.trim()
         }else if (login[0].toString() == "+"){
-            newLogin = login?.replace("[^+\\d]".toRegex(),"")
+            newLogin = login.replace("[^+\\d]".toRegex(),"")
         }
         return map[newLogin]?.run {
             if (checkPassword(password)) userInfo
@@ -59,7 +60,7 @@ object UserHolder {
         if (login.contains("@")) {
             newLogin = login.trim()
         }else if (login[0].toString() == "+"){
-            newLogin = login?.replace("[^+\\d]".toRegex(),"")
+            newLogin = login.replace("[^+\\d]".toRegex(),"")
         }
          map[newLogin]?.run {
              val code = generateAccessCode()
@@ -70,4 +71,21 @@ object UserHolder {
          }
 
     }
+    fun importUsers(list: List<String>): List<User>{
+        val listUsers = mutableListOf<User>()
+        for (str in list){
+            val parse = str.split(";")
+            val user = User.makeUserImport(
+                fullName = parse[0].trim(),
+                email = parse[1].ifEmpty { null },
+                passwordRaw = parse[2].ifEmpty { null },
+                phone = parse[3].ifEmpty { null }
+            )
+            if (user!= null){
+                map[user.login] = user
+            listUsers.add(user)}
+        }
+        return listUsers
+    }
+
 }
