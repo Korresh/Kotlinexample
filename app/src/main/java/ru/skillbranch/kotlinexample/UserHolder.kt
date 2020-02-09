@@ -81,10 +81,10 @@ object UserHolder {
                 passwordRaw = parse[2].ifEmpty { null },
                 phone = parse[3].ifEmpty { null }
             )
-            if (user!= null){
-                map[user.login] = user
-            listUsers.add(user)}
-        }
+
+             map[user.login] = user
+            listUsers.add(user)
+            }
         return listUsers
     }
 
