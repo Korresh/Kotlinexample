@@ -158,14 +158,17 @@ class User private constructor(
         }
 
         fun makeUserImport(
-            fullName: String,
+            fullName: String? = null,
             email: String? = null,
-            passwordRaw: String? = null,
+            access: String? = null,
             phone: String? = null
-        ): User {
+        ): User? {
+            if (fullName.isNullOrBlank() || access.isNullOrBlank()) return null
+
             val (firstName, lastName) = fullName.fullNameToPair()
-            val (imSalt, hash) = passwordRaw!!.split(":")
-            return User(firstName, lastName, email,hash,imSalt,phone )
+            val (salt, hash) = access.split(":")
+
+            return User(firstName, lastName, email, hash, salt, phone)
         }
 
 

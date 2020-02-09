@@ -74,9 +74,9 @@ object UserHolder {
     fun importUsers(list: List<String>): List<User> =
         list.map {
             val (fullName, email, access, phone) = it.split(";")
-            val cuser = User.makeUserImport(fullName, email, access, phone)
+            val user = User.makeUserImport(fullName, email, access, phone)
                 ?.also { user -> map[user.login] = user }
-            cuser
+            user
         }.filterNotNull()
 
 }
