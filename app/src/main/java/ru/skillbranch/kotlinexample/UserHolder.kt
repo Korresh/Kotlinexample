@@ -71,21 +71,12 @@ object UserHolder {
          }
 
     }
-    fun importUsers(list: List<String>): List<User>{
-        val listUsers = mutableListOf<User>()
-        for (str in list){
-            val parse = str.split(";")
-            val user = User.makeUserImport(
-                fullName = parse[0].trim(),
-                email = parse[1].ifEmpty { null },
-                passwordRaw = parse[2].ifEmpty { null },
-                phone = parse[3].ifEmpty { null }
-            )
-
-             map[user.login] = user
-            listUsers.add(user)
-            }
-        return listUsers
-    }
+    fun importUsers(list: List<String>): List<User> =
+        list.map {
+            val (fullName, email, access, phone) = it.split(";")
+            val cuser = User.makeUserImport(fullName, email, access, phone)
+                ?.also { user -> map[user.login] = user }
+            cuser
+        }.filterNotNull()
 
 }
