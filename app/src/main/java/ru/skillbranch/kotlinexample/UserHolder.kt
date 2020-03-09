@@ -55,7 +55,7 @@ object UserHolder {
 
 
 
-    fun requestAccessCode(login: String) : Unit {
+    fun requestAccessCode(login: String)  {
         var newLogin:String? = null
         if (login.contains("@")) {
             newLogin = login.trim()
@@ -71,12 +71,20 @@ object UserHolder {
          }
 
     }
-    fun importUsers(list: List<String>): List<User> =
-        list.map {
-            val (fullName, email, access, phone) = it.split(";")
-            val user = User.makeUserImport(fullName, email, access, phone)
-                ?.also { user -> map[user.login] = user }
-            user
-        }.filterNotNull()
+    fun importUsers(list: List<String>): List<User> {
+        val users = mutableListOf<User>()
+        list.forEach { string ->
+            val userFields = string.split(";")
+            val user = User.makeUserFromImport(
+                fullName = userFields[0].trim(),
+                email = userFields[1].ifEmpty { null },
+                passwordInfo = userFields[2].ifEmpty { null },
+                phone = userFields[3].ifEmpty { null }
+            )
+            map[user.login] = user
+            users.add(user)
+        }
+        return users
+    }
 
 }

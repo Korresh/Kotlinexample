@@ -19,10 +19,12 @@ class User private constructor(
         get() = listOfNotNull(firstName, lastName)
             .joinToString (" ")
             .capitalize()
+
     private val initials:String
         get() = listOfNotNull(firstName,lastName)
             .map { it.first().toUpperCase() }
             .joinToString(" ")
+
     private var phone:String? = null
         set(value) {
             field = value?.replace("[^+\\d]".toRegex(),"")
@@ -36,8 +38,12 @@ class User private constructor(
         get() = _login!!
 
 
-    private var salt: String = ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
-    lateinit var passwordHash:String
+    private var _salt: String? = null
+    private val salt: String by lazy {
+        _salt ?: ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
+    }
+
+    lateinit var passwordHash: String
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     var accessCode: String? = null
@@ -72,15 +78,20 @@ class User private constructor(
         firstName: String,
         lastName: String?,
         email: String?,
-        hash:String,
-        iSalt:String,
-        phone: String?
-    ): this(firstName, lastName, email= email,rawPhone = phone, meta = mapOf("src" to "csv")){
-        println("Import constructor")
-        passwordHash = hash
-        salt = iSalt
-
-
+        passwordInfo: String?,
+        rawPhone: String?
+    ) : this(
+        firstName = firstName,
+        lastName = lastName,
+        email = email,
+        rawPhone = rawPhone,
+        meta = mapOf("src" to "csv")
+    ) {
+        println("secondary import constructor")
+        if (!passwordInfo.isNullOrBlank()) {
+            _salt = passwordInfo.split(":").first()
+            passwordHash = passwordInfo.split(":").last()
+        }
     }
 
 
@@ -112,7 +123,10 @@ class User private constructor(
         else throw IllegalArgumentException("The entered password does not match the current password")
     }
 
-    fun encrypt(password: String): String = salt.plus(password).md5()
+    fun encrypt(password: String): String {
+        return if (_salt == null) salt.plus(password).md5()
+        else _salt.plus(password).md5()
+    }
 
     fun generateAccessCode(): String {
         val possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -156,8 +170,23 @@ class User private constructor(
                 else -> throw IllegalArgumentException("Email or phone must be not null or blank")
             }
         }
+        fun makeUserFromImport(
+            fullName: String,
+            email: String? = null,
+            passwordInfo: String? = null,
+            phone: String? = null
+        ): User {
+            val (firstName, lastName) = fullName.fullNameToPair()
+            return User(
+                firstName = firstName,
+                lastName = lastName,
+                email = email,
+                passwordInfo = passwordInfo,
+                rawPhone = phone
+            )
+        }
 
-        fun makeUserImport(
+        /*fun makeUserFromImport(
             fullName: String? = null,
             email: String? = null,
             access: String? = null,
@@ -169,7 +198,7 @@ class User private constructor(
             val (salt, hash) = access.split(":")
 
             return User(firstName, lastName, email, hash, salt, phone)
-        }
+        }*/
 
 
         private fun String.fullNameToPair(): Pair<String, String?> {
