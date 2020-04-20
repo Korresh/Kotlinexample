@@ -186,19 +186,6 @@ class User private constructor(
             )
         }
 
-        /*fun makeUserFromImport(
-            fullName: String? = null,
-            email: String? = null,
-            access: String? = null,
-            phone: String? = null
-        ): User? {
-            if (fullName.isNullOrBlank() || access.isNullOrBlank()) return null
-
-            val (firstName, lastName) = fullName.fullNameToPair()
-            val (salt, hash) = access.split(":")
-
-            return User(firstName, lastName, email, hash, salt, phone)
-        }*/
 
 
         private fun String.fullNameToPair(): Pair<String, String?> {
